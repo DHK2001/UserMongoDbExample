@@ -2,15 +2,12 @@ import { registerProvider } from "@tsed/di";
 import { Logger } from "@tsed/logger";
 import * as dotenv from "dotenv";
 import { DataSource } from "typeorm";
-
 dotenv.config();
 
 export const MongodbDatasource = Symbol.for("MongodbDatasource");
 export type MongodbDatasource = DataSource;
 
-const MONGO_URL = `mongodb+srv://${process.env.MONGO_USER}:${encodeURIComponent(
-  process.env.MONGO_PASSWORD || "",
-)}@${process.env.MONGO_CLUSTER}/${process.env.MONGO_DATABASE}${process.env.MONGO_OPTIONS}`;
+const MONGO_URL = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_CLUSTER}/${process.env.MONGO_OPTIONS}`;
 
 console.log("url dev", MONGO_URL);
 
@@ -19,9 +16,8 @@ export const mongodbDatasource = new DataSource({
   url: MONGO_URL,
   database: process.env.MONGO_DATABASE,
   useUnifiedTopology: true,
-  entities: [],
   synchronize: false,
-  migrations: [],
+  entities: ["src/entities/*.{ts,js}"],
 });
 
 registerProvider<DataSource>({
