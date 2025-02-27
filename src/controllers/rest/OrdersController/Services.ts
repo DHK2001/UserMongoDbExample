@@ -1,6 +1,7 @@
 import { Inject, Injectable } from "@tsed/di";
 import { BadRequest, NotFound } from "@tsed/exceptions";
 import { Logger } from "@tsed/logger";
+import { ObjectId } from "mongodb";
 import { MongodbDatasource } from "src/datasources/MongodbDatasource.js";
 import { Order } from "src/entities/OrderEntity.js";
 import { OrderProduct } from "src/entities/OrderProduct.js";
@@ -41,13 +42,13 @@ export class OrderService {
       var orderResponse: OrderResponse[] = [];
       await Promise.all(
         orders.map(async (order) => {
-          const products = await this.orderProductRepository.find({ where: { orderId: order.id } });
+          const products = await this.orderProductRepository.find({ where: { orderId: new ObjectId(order._id) } });
           orderResponse.push({
-            id: order.id,
-            userId: order.user === null ? "User Deleted" : order.user.id,
+            id: order._id.toString(),
+            userId: order.user === null ? "User Deleted" : order.user._id.toString(),
             products: products.map((product) => ({
-              id: product.productId,
-              name: order.products.find((p) => p.id === product.productId)?.name || "",
+              id: product.productId.toString(),
+              name: order.products.find((p) => p._id === new ObjectId(product.productId))?.name || "",
               amount: product.amount
             })),
             totalAmount: order.totalAmount,
@@ -56,8 +57,6 @@ export class OrderService {
           });
         })
       );
-
-      console.log("orderResponse", orderResponse);
 
       return orderResponse;
     } catch (error) {
@@ -68,12 +67,12 @@ export class OrderService {
 
   async getByUserId(userId: string, finalized?: boolean): Promise<OrderResponse[]> {
     try {
-      const user = await this.userRepository.findOne({ where: { id: userId } });
+      const user = await this.userRepository.findOne({ where: { _id: new ObjectId(userId) } });
       if (!user) {
         throw new NotFound("User not found");
       }
 
-      const whereConditions: any = { user: { id: userId } };
+      const whereConditions: any = { user: { _id: new ObjectId(userId) }  };
       if (finalized !== undefined) {
         whereConditions.finalized = finalized;
       }
@@ -86,14 +85,14 @@ export class OrderService {
       const orderResponse: OrderResponse[] = await Promise.all(
         orders.map(async (order) => {
           const products = await this.orderProductRepository.find({
-            where: { orderId: order.id }
+            where: { orderId: new ObjectId(order._id) }
           });
           return {
-            id: order.id,
-            userId: order.user.id,
+            id: order._id.toString(),
+            userId: order.user._id.toString(),
             products: products.map((product) => ({
-              id: product.productId,
-              name: order.products.find((p) => p.id === product.productId)?.name || "",
+              id: product.productId.toString(),
+              name: order.products.find((p) => p._id === new ObjectId(product.productId))?.name || "",
               amount: product.amount
             })),
             totalAmount: order.totalAmount,
@@ -111,17 +110,17 @@ export class OrderService {
 
   async getById(id: string): Promise<OrderResponse> {
     try {
-      const order = await this.orderRepository.findOne({ where: { id }, relations: ["user", "products"] });
+      const order = await this.orderRepository.findOne({ where: { _id: new ObjectId(id) }, relations: ["user", "products"] });
       if (!order) {
         throw new NotFound("Order not found");
       }
-      const products = await this.orderProductRepository.find({ where: { orderId: order.id } });
+      const products = await this.orderProductRepository.find({ where: { orderId: new ObjectId(order._id )} });
       return {
-        id: order.id,
-        userId: order.user === null ? "User Deleted" : order.user.id,
+        id: order._id.toString(),
+        userId: order.user === null ? "User Deleted" : order.user._id.toString(),
         products: products.map((product) => ({
-          id: product.productId,
-          name: order.products.find((p) => p.id === product.productId)?.name || "",
+          id: product.productId.toString(),
+          name: order.products.find((p) => p._id === new ObjectId(product.productId))?.name || "",
           amount: product.amount
         })),
         totalAmount: order.totalAmount,
@@ -136,14 +135,14 @@ export class OrderService {
 
   async createOrder(createOrderDto: CreateOrderDto): Promise<OrderResponse> {
     try {
-      const user = await this.userRepository.findOne({ where: { id: createOrderDto.userId } });
+      const user = await this.userRepository.findOne({ where: { _id: new ObjectId(createOrderDto.userId) } });
       if (!user) {
         throw new NotFound("User not found");
       }
 
       const products = await Promise.all(
         createOrderDto.products.map(async (productDto) => {
-          const product = await this.productRepository.findOne({ where: { id: productDto.id } });
+          const product = await this.productRepository.findOne({ where: { _id: new ObjectId(productDto.id) } });
           if (!product) {
             throw new NotFound(`Product with id ${productDto.id} not found`);
           }
@@ -177,10 +176,10 @@ export class OrderService {
       );
 
       return {
-        id: savedOrder.id,
-        userId: savedOrder.user.id,
+        id: savedOrder._id.toString(),
+        userId: savedOrder.user._id.toString(),
         products: products.map((product) => ({
-          id: product.id,
+          id: product._id.toString(),
           name: product.name,
           amount: product.amount
         })),
@@ -197,7 +196,7 @@ export class OrderService {
   async update(id: string, updateOrderDto: UpdateOrderDto): Promise<OrderResponse> {
     try {
       const existingOrder = await this.orderRepository.findOne({
-        where: { id },
+        where: { _id: new ObjectId(id) },
         relations: ["user", "products"]
       });
 
@@ -213,17 +212,17 @@ export class OrderService {
 
       await Promise.all(
         existingOrder.products.map(async (product) => {
-          const exists = updateOrderDto.products.some((productUp) => productUp.id === product.id);
+          const exists = updateOrderDto.products.some((productUp) => productUp.id === product._id.toString());
           if (!exists) {
             const orderProduct = await this.orderProductRepository.findOne({
-              where: { orderId: existingOrder.id, productId: product.id }
+              where: { orderId: new ObjectId(existingOrder._id), productId: new ObjectId(product._id) }
             });
             product.stock += orderProduct?.amount ?? 0;
             await this.productRepository.save(product);
 
             await this.orderProductRepository.delete({
-              orderId: existingOrder.id,
-              productId: product.id
+              orderId: existingOrder._id,
+              productId: product._id
             });
           }
         })
@@ -231,12 +230,12 @@ export class OrderService {
 
       var products = await Promise.all(
         updateOrderDto.products.map(async (productDto) => {
-          const product = await this.productRepository.findOne({ where: { id: productDto.id } });
+          const product = await this.productRepository.findOne({ where: { _id: new ObjectId(productDto.id) } });
           if (!product) {
             throw new NotFound(`Product with id ${productDto.id} not found`);
           }
           const orderProduct = await this.orderProductRepository.findOne({
-            where: { orderId: existingOrder.id, productId: productDto.id }
+            where: { orderId: new ObjectId(existingOrder._id), productId: new ObjectId(productDto.id) }
           });
 
           if (!orderProduct) {
@@ -265,8 +264,8 @@ export class OrderService {
                 await this.orderProductRepository.save(orderProduct);
               } else {
                 await this.orderProductRepository.delete({
-                  orderId: existingOrder.id,
-                  productId: productDto.id
+                  orderId: new ObjectId(existingOrder._id),
+                  productId: new ObjectId(productDto.id)
                 });
               }
             }
@@ -280,10 +279,10 @@ export class OrderService {
       existingOrder.products = products;
       await this.orderRepository.save(existingOrder);
       return {
-        id: existingOrder.id,
-        userId: existingOrder.user.id,
+        id: existingOrder._id.toString(),
+        userId: existingOrder.user._id.toString(),
         products: products.map((product) => ({
-          id: product.id,
+          id: product._id.toString(),
           name: product.name,
           amount: product.amount
         })),
@@ -299,12 +298,12 @@ export class OrderService {
 
   async remove(id: string): Promise<DeleteOrderResponse> {
     try {
-      const order = await this.orderRepository.findOne({ where: { id } });
+      const order = await this.orderRepository.findOne({ where: { _id: new ObjectId(id) } });
       if (!order) {
         throw new NotFound("Order not found");
       }
       await this.orderRepository.delete(id);
-      await this.orderProductRepository.delete({ orderId: id });
+      await this.orderProductRepository.delete({ orderId: new ObjectId(id) });
       return { deleted: true, message: "Order deleted successfully" };
     } catch (error) {
       this.logger.error("OrderService: remove Error:", error);
@@ -314,7 +313,7 @@ export class OrderService {
 
   async finalize(id: string): Promise<FinalizedOrderResponse> {
     try {
-      const order = await this.orderRepository.findOne({ where: { id } });
+      const order = await this.orderRepository.findOne({ where: { _id: new ObjectId(id) } });
       if (!order) {
         throw new NotFound("Order not found");
       }
