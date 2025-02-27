@@ -38,6 +38,26 @@ export class UpdateProductDto {
   stock: number;
 }
 
+export class ProductResponse {
+  @Property()
+  id: string;
+
+  @Property()
+  name: string;
+
+  @Property()
+  description: string;
+
+  @Property()
+  imageUrl: string;
+
+  @Property()
+  price: number;
+
+  @Property()
+  stock: number;
+}
+
 export class deleteProductResponse {
   @Property()
   deleteUser: boolean;

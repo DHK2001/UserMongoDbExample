@@ -60,3 +60,26 @@ export class deleteUserResponse {
   @Property()
   message: string;
 }
+
+export class userR {
+  @Property()
+  id!: String;
+
+  @Property()
+  firstName!: string;
+
+  @Property()
+  lastName!: string;
+
+  @Property()
+  email!: string;
+
+  @Property()
+  password_bcrypt!: string;
+
+  @Property()
+  creationDate!: Date;
+
+  @Property()
+  deletedAt?: Date;
+}

@@ -1,8 +1,7 @@
 import { Controller, Inject } from "@tsed/di";
 import { BodyParams, HeaderParams, PathParams } from "@tsed/platform-params";
 import { Delete, Get, Patch, Post, Put, Returns } from "@tsed/schema";
-import { User } from "src/entities/UserEntity.js";
-import { CreateUserDto, deleteUserResponse, loginResponseDto, loginUserDto, UpdateUserDto } from "src/models/UserModels.js";
+import { CreateUserDto, deleteUserResponse, loginResponseDto, loginUserDto, UpdateUserDto, userR } from "src/models/UserModels.js";
 
 import { UsersService } from "./Services.js";
 
@@ -12,7 +11,7 @@ export class UsersController {
   private readonly usersService: UsersService;
 
   @Get("/")
-  @Returns(200, User)
+  @Returns(200, userR)
   async get(@HeaderParams("authorization-token") token: string) {
     return await this.usersService.getAll();
   }
@@ -23,8 +22,8 @@ export class UsersController {
   }
 
   @Post()
-  @Returns(201, User)
-  async create(@BodyParams() createUserDto: CreateUserDto): Promise<User> {
+  @Returns(201, userR)
+  async create(@BodyParams() createUserDto: CreateUserDto): Promise<userR> {
     return await this.usersService.createUser(createUserDto);
   }
 
@@ -35,12 +34,12 @@ export class UsersController {
   }
 
   @Put("/:id")
-  @Returns(200, User)
+  @Returns(200, userR)
   async update(
     @PathParams("id") id: string,
     @BodyParams() user: UpdateUserDto,
     @HeaderParams("authorization-token") token: string
-  ): Promise<User> {
+  ): Promise<userR> {
     return await this.usersService.update(id, user);
   }
 

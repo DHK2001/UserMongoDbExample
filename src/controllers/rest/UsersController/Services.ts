@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 import { MongodbDatasource } from "src/datasources/MongodbDatasource.js";
 import { Order } from "src/entities/OrderEntity.js";
 import { User } from "src/entities/UserEntity.js";
-import { CreateUserDto, deleteUserResponse, loginResponseDto, loginUserDto, UpdateUserDto } from "src/models/UserModels.js";
+import { CreateUserDto, deleteUserResponse, loginResponseDto, loginUserDto, UpdateUserDto, userR } from "src/models/UserModels.js";
 import { converBcryptPassword, verifyPassword } from "src/utils/helpers.js";
 import { DataSource, Repository } from "typeorm";
 import { ObjectId } from 'mongodb';
@@ -31,17 +31,27 @@ export class UsersService {
     }
   }
 
-  async getAll(): Promise<User[]> {
+  async getAll(): Promise<userR[]> {
     try {
       const users = await this.usersRepository.find();
-      return users;
+
+      const mappedUsers = users.map(user => ({
+        id: user._id.toString(),
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        password_bcrypt: user.password_bcrypt,
+        creationDate: user.creationDate
+      }));
+  
+      return mappedUsers;
     } catch (error) {
       this.logger.error("UsersServices: ", `getAll Error: ${error}`);
       throw new BadRequest("An error occurred while fetching all users");
     }
   }
 
-  async getById(id: string): Promise<User> {
+  async getById(id: string): Promise<userR> {
     try {
       const user = await this.usersRepository.findOne({ where: { _id: new ObjectId(id) } });
 
@@ -49,7 +59,14 @@ export class UsersService {
         throw new NotFound("User not found");
       }
 
-      return user;
+      return {
+        id: user._id.toString(),
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        password_bcrypt: user.password_bcrypt,
+        creationDate: user.creationDate
+      };
     } catch (error) {
       this.logger.error("UsersServices: ", `getById Error: ${error}`);
       if (error instanceof NotFound) {
@@ -59,7 +76,7 @@ export class UsersService {
     }
   }
 
-  async createUser(createUserDto: CreateUserDto): Promise<User> {
+  async createUser(createUserDto: CreateUserDto): Promise<userR> {
     try {
       const hashedPassword = await converBcryptPassword(createUserDto.password);
       const createUser = {
@@ -69,14 +86,21 @@ export class UsersService {
         password_bcrypt: hashedPassword
       };
       const userSave = await this.usersRepository.save(createUser);
-      return userSave;
+      return {
+        id: userSave._id.toString(),
+        firstName: userSave.firstName,
+        lastName: userSave.lastName,
+        email: userSave.email,
+        password_bcrypt: userSave.password_bcrypt,
+        creationDate: userSave.creationDate
+      };
     } catch (error) {
       this.logger.error("UsersServices: ", `createUser Error: ${error}`);
       throw new BadRequest("An error occurred while fetching the user");
     }
   }
 
-  async update(id: string, user: Partial<UpdateUserDto>): Promise<User> {
+  async update(id: string, user: Partial<UpdateUserDto>): Promise<userR> {
     try {
       const existingUser = await this.usersRepository.findOne({ where: { _id: new ObjectId(id) } });
 
@@ -86,7 +110,14 @@ export class UsersService {
 
       const updatedUser = this.usersRepository.merge(existingUser, user);
       const data = await this.usersRepository.save(updatedUser);
-      return data;
+      return {
+        id: data._id.toString(),
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        password_bcrypt: data.password_bcrypt,
+        creationDate: data.creationDate
+      };
     } catch (error) {
       this.logger.error("UsersServices: ", `update Error: ${error}`);
       if (error instanceof NotFound) {

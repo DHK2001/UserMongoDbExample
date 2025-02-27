@@ -1,10 +1,9 @@
 import { Controller, Inject } from "@tsed/di";
 import { BodyParams, HeaderParams, PathParams } from "@tsed/platform-params";
 import { Delete, Get, Post, Put, Returns } from "@tsed/schema";
-import { CreateProductDto, deleteProductResponse, UpdateProductDto } from "src/models/ProductModels.js";
+import { CreateProductDto, deleteProductResponse, ProductResponse, UpdateProductDto } from "src/models/ProductModels.js";
 
 import { ProducstService } from "./Services.js";
-import { Product } from "src/entities/ProductEntity.js";
 
 @Controller("/products")
 export class ProductController {
@@ -12,7 +11,7 @@ export class ProductController {
   private readonly productsService: ProducstService;
 
   @Get("/")
-  @Returns(200, Product)
+  @Returns(200, ProductResponse)
   async get(@HeaderParams("authorization-token") token: string) {
     return await this.productsService.getAll();
   }
@@ -23,21 +22,21 @@ export class ProductController {
   }
 
   @Post()
-  @Returns(201, Product)
+  @Returns(201, ProductResponse)
   async create(
     @BodyParams() createProduct: CreateProductDto,
     @HeaderParams("authorization-token") token: string
-  ): Promise<Product> {
+  ): Promise<ProductResponse> {
     return await this.productsService.createProduct(createProduct);
   }
 
   @Put("/:id")
-  @Returns(200, Product)
+  @Returns(200, ProductResponse)
   async update(
     @PathParams("id") id: string,
     @BodyParams() product: UpdateProductDto,
     @HeaderParams("authorization-token") token: string
-  ): Promise<Product> {
+  ): Promise<ProductResponse> {
     return await this.productsService.update(id, product);
   }
 

@@ -5,7 +5,7 @@ import * as dotenv from "dotenv";
 import { ObjectId } from "mongodb";
 import { MongodbDatasource } from "src/datasources/MongodbDatasource.js";
 import { Product } from "src/entities/ProductEntity.js";
-import { CreateProductDto, deleteProductResponse, UpdateProductDto } from "src/models/ProductModels.js";
+import { CreateProductDto, deleteProductResponse, ProductResponse, UpdateProductDto } from "src/models/ProductModels.js";
 import { DataSource, Repository } from "typeorm";
 
 dotenv.config();
@@ -26,17 +26,27 @@ export class ProducstService {
     }
   }
 
-  async getAll(): Promise<Product[]> {
+  async getAll(): Promise<ProductResponse[]> {
     try {
       const products = await this.productRepository.find();
-      return products;
+
+      const mappedProducts = products.map(product => ({
+        id: product._id.toString(),
+        name: product.name,
+        description: product.description,
+        imageUrl: product.imageUrl,
+        price: product.price,
+        stock: product.stock
+      }));
+
+      return mappedProducts;
     } catch (error) {
       this.logger.error("UsersServices: ", `getAll Error: ${error}`);
       throw new BadRequest("An error occurred while fetching all products");
     }
   }
 
-  async getById(id: string): Promise<Product> {
+  async getById(id: string): Promise<ProductResponse> {
     try {
       const product = await this.productRepository.findOne({ where: { _id: new ObjectId(id) } });
 
@@ -44,7 +54,14 @@ export class ProducstService {
         throw new NotFound("Product not found");
       }
 
-      return product;
+      return {
+        id: product._id.toString(),
+        name: product.name,
+        description: product.description,
+        imageUrl: product.imageUrl,
+        price: product.price,
+        stock: product.stock
+      };
     } catch (error) {
       this.logger.error("UsersServices: ", `getById Error: ${error}`);
       if (error instanceof NotFound) {
@@ -54,7 +71,7 @@ export class ProducstService {
     }
   }
 
-  async createProduct(createProductDto: CreateProductDto): Promise<Product> {
+  async createProduct(createProductDto: CreateProductDto): Promise<ProductResponse> {
     try {
       const product = await this.productRepository.findOne({ where: { name: createProductDto.name } });
 
@@ -63,14 +80,21 @@ export class ProducstService {
       }
 
       const productSave = await this.productRepository.save(createProductDto);
-      return productSave;
+      return {
+        id: productSave._id.toString(),
+        name: productSave.name,
+        description: productSave.description,
+        imageUrl: productSave.imageUrl,
+        price: productSave.price,
+        stock: productSave.stock
+      };
     } catch (error) {
       this.logger.error("UsersServices: ", `createUser Error: ${error}`);
       throw new BadRequest("An error occurred while fetching the ptoduct");
     }
   }
 
-  async update(id: string, product: Partial<UpdateProductDto>): Promise<Product> {
+  async update(id: string, product: Partial<UpdateProductDto>): Promise<ProductResponse> {
     try {
       const existingProduct = await this.productRepository.findOne({ where: { _id: new ObjectId(id) } });
 
@@ -80,7 +104,14 @@ export class ProducstService {
 
       const updatedUser = this.productRepository.merge(existingProduct, product);
       const data = await this.productRepository.save(updatedUser);
-      return data;
+      return {
+        id: data._id.toString(),
+        name: data.name,
+        description: data.description,
+        imageUrl: data.imageUrl,
+        price: data.price,
+        stock: data.stock
+      };
     } catch (error) {
       this.logger.error("UsersServices: ", `update Error: ${error}`);
       if (error instanceof NotFound) {
