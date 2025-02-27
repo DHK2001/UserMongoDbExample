@@ -13,6 +13,7 @@ export default class CustomMiddleware implements MiddlewareMethods {
   acceptMimes: string[];
 
   use(@Context() $ctx: Context) {
+    console.log("Custom middleware called");
     if (!$ctx.request.accepts(this.acceptMimes)) {
       throw new NotAcceptable("Accepted mimes are: " + this.acceptMimes.join(", "));
     }
@@ -20,10 +21,10 @@ export default class CustomMiddleware implements MiddlewareMethods {
     const method = $ctx.request.method.toUpperCase();
     const path = $ctx.request.url;
 
-    if (["GET", "PUT", "DELETE"].includes(method) && path.startsWith("/v1/users")) {
-      this.verifyAccessToken($ctx);
-    } else if (path.startsWith("/v1/products") || path.startsWith("/v1/orders")) {
-      this.verifyAccessToken($ctx);
+    if (["GET", "PUT", "DELETE"].includes(method) && path.startsWith("/v1/mongoDB/users")) {
+      //this.verifyAccessToken($ctx);
+    } else if (path.startsWith("/v1/mongoDB/products") || path.startsWith("/v1/mongoDB/orders")) {
+      //this.verifyAccessToken($ctx);
     }
   }
 

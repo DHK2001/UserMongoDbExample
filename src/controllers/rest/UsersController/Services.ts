@@ -9,6 +9,7 @@ import { User } from "src/entities/UserEntity.js";
 import { CreateUserDto, deleteUserResponse, loginResponseDto, loginUserDto, UpdateUserDto } from "src/models/UserModels.js";
 import { converBcryptPassword, verifyPassword } from "src/utils/helpers.js";
 import { DataSource, Repository } from "typeorm";
+import { ObjectId } from 'mongodb';
 
 dotenv.config();
 
@@ -42,7 +43,7 @@ export class UsersService {
 
   async getById(id: string): Promise<User> {
     try {
-      const user = await this.usersRepository.findOne({ where: { id } });
+      const user = await this.usersRepository.findOne({ where: { _id: new ObjectId(id) } });
 
       if (!user) {
         throw new NotFound("User not found");
@@ -77,7 +78,7 @@ export class UsersService {
 
   async update(id: string, user: Partial<UpdateUserDto>): Promise<User> {
     try {
-      const existingUser = await this.usersRepository.findOne({ where: { id } });
+      const existingUser = await this.usersRepository.findOne({ where: { _id: new ObjectId(id) } });
 
       if (!existingUser) {
         throw new NotFound("User not found");
@@ -108,7 +109,7 @@ export class UsersService {
       if (isMatch) {
         const secretKey = process.env.SECRET_KEY;
         const payloadToken = {
-          id: user.id,
+          id: user._id,
           email: user.email,
           password: user.password_bcrypt
         };
@@ -135,13 +136,13 @@ export class UsersService {
 
   async softDelete(id: string): Promise<deleteUserResponse> {
     try {
-      const existingUser = await this.usersRepository.findOne({ where: { id } });
+      const existingUser = await this.usersRepository.findOne({ where: { _id: new ObjectId(id) } });
 
       if (!existingUser) {
         throw new NotFound("User not found");
       }
 
-      const whereConditions: any = { user: { id } };
+      const whereConditions: any = { user: { _id: new ObjectId(id) } };
       whereConditions.finalized = false;
 
       const orders = await this.orderRepository.find({
@@ -153,7 +154,7 @@ export class UsersService {
         throw new BadRequest("User has orders without finalized, cannot be soft deleted");
       }
 
-      await this.usersRepository.softDelete(existingUser.id);
+      await this.usersRepository.softDelete(new ObjectId(existingUser._id));
       return {
         deleteUser: true,
         message: "User deleted successfully"
@@ -169,13 +170,13 @@ export class UsersService {
 
   async remove(id: string): Promise<deleteUserResponse> {
     try {
-      const existingUser = await this.usersRepository.findOne({ where: { id } });
+      const existingUser = await this.usersRepository.findOne({ where: { _id: new ObjectId(id) } });
 
       if (!existingUser) {
         throw new NotFound("User not found");
       }
 
-      const whereConditions: any = { user: { id } };
+      const whereConditions: any = { user: { _id: new ObjectId(id) } };
 
       const orders = await this.orderRepository.find({
         where: whereConditions,
@@ -186,7 +187,7 @@ export class UsersService {
         throw new BadRequest("User has orders, cannot be deleted");
       }
 
-      await this.usersRepository.delete(existingUser.id);
+      await this.usersRepository.delete(existingUser._id);
       return {
         deleteUser: true,
         message: "User deleted successfully"

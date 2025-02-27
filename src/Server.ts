@@ -21,7 +21,7 @@ import CustomMiddleware from "./middleware/CustomMiddleware.js";
     returnsCoercedValues: true,
   },
   mount: {
-    "/rest": [...Object.values(rest)],
+    "/v1/mongoDB": [...Object.values(rest)],
     "/": [...Object.values(pages)],
   },
   swagger: [

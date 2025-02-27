@@ -9,7 +9,7 @@ export class Order {
   @PrimaryGeneratedColumn("uuid")
   @Property()
   @Required()
-  id!: string;
+  _id!: string;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: "userId" })

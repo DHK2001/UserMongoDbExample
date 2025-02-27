@@ -1,17 +1,13 @@
 import { Email, MaxLength, MinLength, Property, Required } from "@tsed/schema";
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-
-export enum RoleType {
-  USER = "USER",
-  ADMIN = "ADMIN"
-}
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, ObjectIdColumn } from "typeorm";
+import { ObjectId } from 'mongodb';
 
 @Entity({ name: "D_User" })
 export class User {
-  @PrimaryGeneratedColumn("uuid")
+  @ObjectIdColumn()
   @Property()
   @Required()
-  id!: string;
+  _id!: ObjectId;
 
   @Column({ length: 100 })
   @MinLength(3)

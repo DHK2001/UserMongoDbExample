@@ -6,7 +6,7 @@ export class Product {
   @PrimaryGeneratedColumn("uuid")
   @Property()
   @Required()
-  id!: string;
+  _id!: string;
 
   @Column({ length: 100 })
   @MinLength(3)
