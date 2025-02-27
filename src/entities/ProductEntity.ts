@@ -1,12 +1,13 @@
 import { MaxLength, MinLength, Property, Required } from "@tsed/schema";
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ObjectIdColumn } from "typeorm";
+import { ObjectId } from 'mongodb';
 
 @Entity({ name: "D_Product" })
 export class Product {
-  @PrimaryGeneratedColumn("uuid")
+  @ObjectIdColumn()
   @Property()
   @Required()
-  _id!: string;
+  _id!: ObjectId;
 
   @Column({ length: 100 })
   @MinLength(3)

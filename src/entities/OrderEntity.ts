@@ -1,15 +1,26 @@
 import { Property, Required } from "@tsed/schema";
-import { Column, CreateDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  ObjectIdColumn,
+  PrimaryGeneratedColumn,
+} from "typeorm";
 
 import { Product } from "./ProductEntity.js";
 import { User } from "./UserEntity.js";
+import { ObjectId } from "mongodb";
 
 @Entity({ name: "D_Order" })
 export class Order {
-  @PrimaryGeneratedColumn("uuid")
+  @ObjectIdColumn()
   @Property()
   @Required()
-  _id!: string;
+  _id!: ObjectId;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: "userId" })

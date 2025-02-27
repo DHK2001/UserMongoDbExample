@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 import { MongodbDatasource } from "src/datasources/MongodbDatasource.js";
 import { Order } from "src/entities/OrderEntity.js";
 import { User } from "src/entities/UserEntity.js";
-import { CreateUserDto, deleteSoft, deleteUserResponse, loginResponseDto, loginUserDto, UpdateUserDto } from "src/models/UserModels.js";
+import { CreateUserDto, deleteUserResponse, loginResponseDto, loginUserDto, UpdateUserDto } from "src/models/UserModels.js";
 import { converBcryptPassword, verifyPassword } from "src/utils/helpers.js";
 import { DataSource, Repository } from "typeorm";
 import { ObjectId } from 'mongodb';

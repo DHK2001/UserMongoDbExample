@@ -1,15 +1,16 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, ObjectIdColumn, PrimaryColumn } from "typeorm";
 
 import { Order } from "./OrderEntity.js";
 import { Product } from "./ProductEntity.js";
+import { ObjectId } from "mongodb";
 
 @Entity({ name: "d_order_products_d_product" })
 export class OrderProduct {
-  @PrimaryColumn("uniqueidentifier", { name: "dOrderId" })
-  orderId!: string;
+  @ObjectIdColumn()
+  orderId!: ObjectId;
 
-  @PrimaryColumn("uniqueidentifier", { name: "dProductId" })
-  productId!: string;
+  @ObjectIdColumn()
+  productId!: ObjectId;
 
   @ManyToOne(() => Order, (order) => order.products)
   @JoinColumn({ name: "dOrderId" })
