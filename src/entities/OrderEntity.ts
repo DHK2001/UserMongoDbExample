@@ -3,12 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
-  JoinTable,
-  ManyToMany,
-  ManyToOne,
   ObjectIdColumn,
-  PrimaryGeneratedColumn,
 } from "typeorm";
 
 import { Product } from "./ProductEntity.js";
@@ -22,13 +17,13 @@ export class Order {
   @Required()
   _id!: ObjectId;
 
-  @ManyToOne(() => User)
-  @JoinColumn({ name: "userId" })
-  user!: User;
+  @Required()
+  @Column()
+  userId!: ObjectId;
 
-  @ManyToMany(() => Product)
-  @JoinTable()
-  products!: Product[];
+  @Column()
+  @Required()
+  productIds!: ObjectId[]; 
 
   @Column("decimal", { precision: 10, scale: 2 })
   @Required()

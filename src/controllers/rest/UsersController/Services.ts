@@ -173,18 +173,13 @@ export class UsersService {
         throw new NotFound("User not found");
       }
 
-      const whereConditions: any = { user: { _id: new ObjectId(id) } };
-      whereConditions.finalized = false;
-
       const orders = await this.orderRepository.find({
-        where: whereConditions,
-        relations: ["user", "products"]
+        where: { userId: existingUser._id, finalized: false }
       });
 
       if (orders.length > 0) {
         throw new BadRequest("User has orders without finalized, cannot be soft deleted");
       }
-
       await this.usersRepository.update(
         { _id: new ObjectId(existingUser._id) },
         { deletedAt: new Date() }
